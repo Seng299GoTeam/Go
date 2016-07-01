@@ -381,7 +381,7 @@ go.Board = function Board(grid){
         if(this.validateMove(move)[0]){
             return this.playNaive(move);
         }
-        return this;
+        return this; //just in case it's not valid, return self.
     }//play
     
 }//Board
