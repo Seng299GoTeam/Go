@@ -20,8 +20,9 @@ go.emptyBoard = function(size){
 //  grid must be an nxn array
 go.Board = function Board(grid){
     this.grid = grid;
-    this.armies = [];  // should be private
-    this.stones = [];  // should be private
+    this.armies = [];      // should be private maybe?
+    this.stones = [];      // should be private maybe?
+    this.territories = []; // should be private probably
     this.size = grid.length;
     
     this.draw = function(){
@@ -63,7 +64,7 @@ go.Board = function Board(grid){
                 if(this.grid[i][j] != 0){
                     var colour = (this.grid[i][j] == 1? "black" : "white");
                     
-                    var newStone = new go.Stone(i,j,colour);
+                    var newStone = new Stone(i,j,colour);
                     var currentArmy = new go.Army(colour);
                     currentArmy.addStone(newStone);
                     
@@ -111,34 +112,147 @@ go.Board = function Board(grid){
                     if(i > 0){
                         tempStone = this.getStone(i-1,j);
                         if(tempStone != null && !tempStone.army.checkForLiberty(i,j)){
-                            tempStone.army.addLiberty(i,j);
+                            tempStone.army.addLiberty(new Intersection(i,j));
                         }
                     }
                     
                     if(i < this.size - 1){
                         tempStone = this.getStone(i+1,j);
                         if(tempStone != null && !tempStone.army.checkForLiberty(i,j)){
-                            tempStone.army.addLiberty(i,j);
+                            tempStone.army.addLiberty(new Intersection(i,j));
                         }
                     }
                     
                     if(j > 0){
                         tempStone = this.getStone(i,j-1);
                         if(tempStone != null && !tempStone.army.checkForLiberty(i,j)){
-                            tempStone.army.addLiberty(i,j);
+                            tempStone.army.addLiberty(new Intersection(i,j));
                         }
                     }
                     
                     if(j < this.size - 1){
                         tempStone = this.getStone(i,j+1);
                         if(tempStone != null && !tempStone.army.checkForLiberty(i,j)){
-                            tempStone.army.addLiberty(i,j);
+                            tempStone.army.addLiberty(new Intersection(i,j));
                         }
                     }
                 }//if is liberty
             }//for j
         }//for i
     }//parse
+    
+    
+    //Find territories and calculate score
+    //returns player scores in form [black score,white score]
+    this.score = function(){
+        this.territories = [];
+        
+        var scores = [0,7.5]; //White gets a bonus for going second
+        
+        //first sweep - identify territories
+        for (var i = 0; i < this.size; i++){
+            for (var j = 0; j < this.size; j++){
+                //for empty intersections...
+                if(this.grid[i][j] == 0){
+                    
+                    var newIntersection = new Intersection(i,j);
+                    var currentTerritory = new Territory();
+                    currentTerritory.addIntersection(newIntersection);
+                    
+                    this.territories.push(currentTerritory);
+                    
+                    if(i > 0){
+                        //check left square;
+                        var leftInter = this.getIntersection(i-1,j);
+                        if (leftInter != null){
+                            //add this territory to existing territory
+                            if(leftInter.territory != newIntersection.territory){
+                                leftInter.territory.add(currentTerritory);
+                                currentTerritory = leftInter.territory;
+                            }
+                        }
+                    }
+                    
+                    if(j > 0){
+                        //check top square;
+                        var topInter = this.getIntersection(i,j-1);
+                        if (topInter != null){
+                            //add this territory to existing territory
+                            if(topInter.territory != newIntersection.territory){
+                                topInter.territory.add(currentTerritory);
+                                currentTerritory = topInter.territory;
+                            }
+                        }
+                    }
+                    
+                    //delete any territories marked for deletion
+                    this.territories = this.territories.filter(t => !t.markedForDeletion);
+                }
+            }//inner for
+        }//outer for
+        //Done first sweep
+        
+        //Second sweep: check whether territories touch black, white, or both.
+        for (var i = 0; i < this.size; i++){
+            for (var j = 0; j < this.size; j++){
+                if (this.grid[i][j] == 0){
+                    var neighbours = [0,0,0,0];
+                    var cur = this.getIntersection(i,j);
+                    
+                    if(i > 0){
+                        neighbours[0] = grid[i-1][j];
+                    }
+                    
+                    if(i < this.size - 1){
+                        neighbours[1] = grid[i+1][j];
+                    }
+                    
+                    if(j > 0){
+                        neighbours[2] = grid[i][j-1];
+                    }
+                    
+                    if(j < this.size - 1){
+                        neighbours[3] = grid[i][j+1];
+                    }
+                    
+                    for (var k in neighbours){
+                        cur.territory.touchesBlack = cur.territory.touchesBlack || (neighbours[k] == 1);
+                        cur.territory.touchesWhite = cur.territory.touchesWhite || (neighbours[k] == 2);
+                    }
+                    
+                    /*
+                    if(neighbours[0] || neighbours[1] || neighbours[2] || neighbours[3]){
+                        console.log("DEBUG: " + cur.touchesBlack.toString() + " " + cur.touchesWhite.toString() + " " + cur.colour());
+                    }*/
+                }//if
+            }//inner for
+        }//outer for
+        
+        
+        //Now count score via Area method:
+        //First stones on the board:
+        for (var i in this.armies){
+            var curArmy = this.armies[i];
+            if(curArmy.colour == "black"){
+                scores[0] += curArmy.countStones();
+            }else if(curArmy.colour == "white"){
+                scores[1] += curArmy.countStones();
+            }
+        }
+        
+        //Then area in territory:
+        for (var i in this.territories){
+            var curTerritory = this.territories[i];
+
+            if(curTerritory.colour() == 1){
+                scores[0] += curTerritory.size();
+            }else if(curTerritory.colour() == 2){
+                scores[1] += curTerritory.size();
+            }
+        }
+        
+        return scores;
+    }//score
     
     this.getStone = function(x,y){
         for(var i = 0; i < this.stones.length; i++){
@@ -149,6 +263,19 @@ go.Board = function Board(grid){
         }
         return null;
     }//check for stone
+    
+    this.getIntersection = function(x,y){
+        for (var i in this.territories){
+            var inters = this.territories[i].intersections;
+            for (var j in inters){
+                var inter = inters[j];
+                if (inter.x == x && inter.y == y){
+                    return inter;
+                }
+            }
+        }
+    }//getIntersection
+    
     
     this.dumpData = function(verbose){
         this.draw();
@@ -249,7 +376,7 @@ go.Board = function Board(grid){
 //     Contains a list of stones, and has "checkHasLiberties(board)" function
 go.Army = function Army(colour){
     this.stones = [];
-    this.liberties = [];  //a liberty isn't an object, just a list [x,y]
+    this.liberties = [];  //a list of intersection objects
     this.colour = colour; //"black" or "white"
     this.markedForDeletion = false; //Set to true after being added to existing army
     
@@ -284,20 +411,20 @@ go.Army = function Army(colour){
         console.log(" " + this.liberties.length + " liberties");
         if(verbose){
             for (var i in this.liberties){
-                console.log("  (" + this.liberties[i][0] + "," + this.liberties[i][1] + ")");
+                console.log("  (" + this.liberties[i].x + "," + this.liberties[i].y + ")");
             }
         }
     }//dumpData
     
-    this.addLiberty = function(x,y){
-        this.liberties.push([x,y]);
+    this.addLiberty = function(intersection){
+        this.liberties.push(intersection);
     }
     
     //Check whether [x,y] is already listed as a liberty
     this.checkForLiberty = function(x,y){
         for (var i in this.liberties){
             var lib = this.liberties[i];
-            if (lib[0] == x && lib[1] == y){
+            if (lib.x == x && lib.y == y){
                 return true;
             }
         }
@@ -307,18 +434,77 @@ go.Army = function Army(colour){
     this.countLiberties = function(){
         return this.liberties.length;
     }
+    
+    this.countStones = function(){
+        return this.stones.length;
+    }
 }//Army
 
+
+//Army: a collection of connected intersections
+//     Knows whether it touches any black or white stones
+go.Territory = Territory;
+var Territory = function Territory(){
+    this.intersections = [];
+    this.touchesBlack = false;
+    this.touchesWhite = false;
+    
+    this.addIntersection = function(intersection){
+        this.intersections.push(intersection);
+        intersection.setTerritory(this);
+    }
+    
+    //Combine with other territory
+    this.add = function(otherTerritory){
+        for (var i in otherTerritory.intersections){
+            this.addIntersection(otherTerritory.intersections[i]);
+        }
+        
+        //Normally neither territory will have an accurate touchesBlack/White yet
+        //  (the identify & combine stage comes first)
+        //  But this is here for the sake of completeness.
+        this.touchesBlack = this.touchesBlack || otherTerritory.touchesBlack;
+        this.touchesWhite = this.touchesWhite || otherTerritory.touchesWhite;
+        
+        otherTerritory.markedForDeletion = true;
+    }//add
+    
+    //returns colour to which territory belongs - 1 for black, 2 for white, 0 for contested
+    this.colour = function(){
+        if (this.touchesWhite == this.touchesBlack){
+            return 0; // contested
+        }else{
+            return (this.touchesBlack? 1 : 2);
+        }
+    }
+    
+    this.size = function(){
+        return this.intersections.length;
+    }
+}
+
 //Stone has x, y position, colour, and group.
-go.Stone = function Stone(x,y,colour){
+go.Stone = Stone;
+var Stone = function Stone(x,y,colour){
     this.x = x;
     this.y = y;
     this.colour = colour;
     this.army = null;
-    this.markedForDeletion = false;
+    //this.markedForDeletion = false;
     
     this.setArmy = function(newArmy){
         this.army = newArmy;
     }
 }//Stone
+
+
+go.Intersection = Intersection;
+var Intersection = function Intersection(x,y){
+    this.x = x;
+    this.y = y;
+    this.territory = null;
+    this.setTerritory = function(newTerritory){
+        this.territory = newTerritory;
+    }
+}//Intersection
 

@@ -9,6 +9,7 @@ const rl = readline.createInterface({
 
 var board = go.emptyBoard(9);
 var currentPlayer = "black";
+var prevMoveWasPass = false;
 
 
 doTurn("Welcome to a hotseat game of Go!\n\n");
@@ -23,6 +24,16 @@ function doTurn(message){
     rl.question("Enter a move (of form '3 5', 'pass', or 'exit'):\n",(answer)=> {
         if(answer == "pass"){
             currentPlayer = (currentPlayer=="black"?"white":"black");
+            
+            if(prevMoveWasPass){
+                console.log("Game Over");
+                console.log(board.score());
+                rl.close();
+                return;
+            }else{
+                prevMoveWasPass = true;
+            }
+            
             doTurn("Player passed.");
         }else if(answer == "exit"){
             console.log("Exiting game");
@@ -41,6 +52,7 @@ function doTurn(message){
                 }else{
                     board = board.play(x,y,currentPlayer);
                     currentPlayer = (currentPlayer=="black"?"white":"black");
+                    prevMoveWasPass = false;
                     doTurn("");
                 }
             }
