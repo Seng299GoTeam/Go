@@ -16,6 +16,7 @@ doTurn("Welcome to a hotseat game of Go!\n\n");
 //Show the board and ask for input
 //"message" will appear above the board
 function doTurn(message){
+    message = message || "";
     console.log("\n".repeat(60));
     console.log(message);
     console.log("Current player: " + (game.currentPlayer==1?"Black":"White"));
@@ -37,7 +38,7 @@ function doTurn(message){
                 var y = parseInt(inputs[2]);
                 
                 var move = new go.Move(x,y,game.currentPlayer,false);
-                game.attemptMove(move,()=>doTurn(""),(err)=>doTurn(err));
+                game.attemptMove(move,doTurn,doTurn);
             }
         }//if ... else
     });//question
