@@ -46,11 +46,16 @@ function doTurn(message){
                 var inputs = answer.match(re);
                 var x = parseInt(inputs[1]);
                 var y = parseInt(inputs[2]);
+                var playernum = (currentPlayer=="black"?1:0);
                 
-                if(!board.validateMove(x,y,currentPlayer)){
-                    doTurn("Not a valid move");
+                var move = new go.Move(x,y,playernum,false);
+                
+                var result = board.validateMove(move);
+
+                if(!result[0]){
+                    doTurn(result[1]);
                 }else{
-                    board = board.play(x,y,currentPlayer);
+                    board = board.play(move);
                     currentPlayer = (currentPlayer=="black"?"white":"black");
                     prevMoveWasPass = false;
                     doTurn("");

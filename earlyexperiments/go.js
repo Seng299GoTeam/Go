@@ -284,9 +284,19 @@ go.Board = function Board(grid){
         }
     }//dumpData
     
-    //play without validation (used in the validation process.
+    //play without validation (used in the validation process.)
     //returns a new board but DOES NOT MODIFY current board.
-    this.playNaive = function(x,y,colour){
+    this.playNaive = function(move){
+        if(move.pass){
+            var newBoard = new Board(this.grid);
+            newBoard.parse();
+            return newBoard; //No difference if the move is a pass
+        }
+        
+        var x = move.x;
+        var y = move.y;
+        var colour = (move.colour==1?"black":"white");
+        
         //copy grid (since just passing the old grid would cause conflicts
         var newGrid = new Array(this.size);
         for (var i = 0; i < this.size; i++){
@@ -335,36 +345,41 @@ go.Board = function Board(grid){
         return newBoard;
     }//play
     
-    //Return true if move is valid,
-    // false otherwise
-    this.validateMove = function(x,y,colour){
+    //Return [true,""] if move is valid,
+    // [false,errormessage] otherwise
+    this.validateMove = function(move){
+        var x = move.x;
+        var y = move.y;
+        var colour = (move.colour == 1?"black":"white");
+        
+        if(move.pass == true){
+            return [true];  //A pass is always valid.
+        }
+    
         if(x<0 || y<0 || x >= this.size || y>=this.size){
-            console.log("Invalid move: Intersection does not exist");
-            return false;
+            return [false,"Invalid move: Intersection does not exist"];
         }
     
         if(this.getStone(x,y)){
-            console.log("Invalid move: Intesrsection is occupied");
-            return false;
+            return [false,"Invalid move: Intesrsection is occupied"];
         }
         
-        var resultingBoard = this.playNaive(x,y,colour);
+        var resultingBoard = this.playNaive(move);
         if(!resultingBoard.getStone(x,y)){
-            console.log("Invalid move: Suicide");
-            return false;
+            return [false,"Invalid move: Suicide"];
         }
         
         //Could check for Ko rule here, if we have some sort of game history somewhere.
         
-        return true;
+        return [true,""];
     }//validateMvoe
     
     
     //Attempt to play, including validation
     //Returns board which is result of that play.
-    this.play = function(x,y,colour){
-        if(this.validateMove(x,y,colour)){
-            return this.playNaive(x,y,colour);
+    this.play = function(move){
+        if(this.validateMove(move)[0]){
+            return this.playNaive(move);
         }
         return this;
     }//play
@@ -507,4 +522,11 @@ var Intersection = function Intersection(x,y){
         this.territory = newTerritory;
     }
 }//Intersection
+
+go.Move = function Move(x,y,c,p){
+    this.x = x;      //integer
+    this.y = y;      //integer
+    this.colour = c; //colour, 1 or 2
+    this.pass = p;   //pass, true or false
+}
 
