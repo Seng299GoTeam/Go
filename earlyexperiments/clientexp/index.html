@@ -1,0 +1,44 @@
+<!DOCTYPE html
+PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <meta http-equiv="content-type"
+        content="application/xhtml+xml; charset=utf-8" />
+
+    <title>Experimental Site</title>
+    <script type="text/javascript" src="js/clientgo.js"></script>
+    <script type="text/javascript" src="js/clientGame.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+    
+</head>
+<body onload="drawBoard()" onmousedown="handleMouseClick(event)">
+
+<table align="center">
+    <tr>
+        <td>
+            <canvas id="theCanvas" width="500" height="500">Your browser does not support the html5 Canvas</canvas>
+        </td>
+    </tr>
+    <tr>
+        <td align="left">
+            Current Player: <span id="currentplayer">Black</span><br />
+            <input type="button" value="Pass" onclick="pass()"/><br />
+            Show Territory Highlighting: <input type="checkbox" name="highlighting">
+        </td>
+    </tr>
+    <tr>
+        <td>
+        <div id="messageDiv">Enjoy your game!</div>
+        </td>
+    </tr>
+</table>
+
+    
+
+
+</body>
+
+</html>
