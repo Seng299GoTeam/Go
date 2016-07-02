@@ -33,6 +33,26 @@ function StoneSprite(x,y,colour){
     }
 }//StoneSprite
 
+function HighlightSprite(x,y,colour){
+    this.x = x;
+    this.y = y;
+    this.colour = colour;
+    
+    this.draw = function(ctx){
+        if(colour == "black"){
+            ctx.fillStyle = "#000000";
+            ctx.globalAlpha = 0.2;
+        }else{
+            ctx.fillStyle = "#FFFFFF";
+            ctx.globalAlpha = 0.7;
+        }
+        ctx.strokeStyle ="#000000";
+        ctx.fillRect((x-0.5)*gridCellSize + canvasBorder, (y-0.5)*gridCellSize + canvasBorder, gridCellSize, gridCellSize);
+        
+        ctx.globalAlpha = 1;
+    }
+}
+
 
 function drawBoard(){
     //First, process board into sprites:
@@ -75,6 +95,24 @@ function drawBoard(){
         ctx.lineTo(xcoord,canvasHeight - canvasBorder);
         ctx.stroke();
     }
+    
+    //Highlights, if necessary:
+    var highlight = document.getElementById("highlighting").checked
+    if(highlight){
+        var territories = game.board.territories;
+        for (var i in territories){
+            var cur = territories[i];
+            if(cur.colour() != 0){
+                var colour = (cur.colour()==1?"black":"white");
+                for (var j in cur.intersections){
+                    var inter = cur.intersections[j];
+                    var sprite = new HighlightSprite(inter.x,inter.y,colour)
+                    sprite.draw(ctx);
+                }//for
+            }//if
+        }//for
+    }//show highlights
+    
     
     //Stones:
     for (var i = 0; i < stones.length; i++){
