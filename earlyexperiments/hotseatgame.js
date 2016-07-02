@@ -27,7 +27,7 @@ function doTurn(message){
             rl.close();
         }else if(answer == "pass"){
             var move = new go.Move(0,0,game.currentPlayer,true); //pass = true
-            game.attemptMove(move,()=>doTurn("Player passed."),(err)=>doTurn(err),winback);
+            game.attemptMove(move,()=>doTurn("Player passed."),doTurn,winback);
         }else{
             var re = /^(\d+)\s(\d+)$/;
             if(!answer.match(re)){
