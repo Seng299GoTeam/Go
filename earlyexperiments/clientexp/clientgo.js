@@ -24,7 +24,6 @@ go.Board = function Board(grid){
     this.stones = [];      // should be private maybe?
     this.territories = []; // should be private probably
     this.size = grid.length;
-    this.scores = [0,0];   // [p1score,p2score]
     
     this.draw = function(){
         s = "";
@@ -140,10 +139,6 @@ go.Board = function Board(grid){
                 }//if is liberty
             }//for j
         }//for i
-        
-        //Also divide into territories and get score
-        // (might be nice for live stats/territory highlighting or something)
-        this.score();
     }//parse
     
     
@@ -151,6 +146,8 @@ go.Board = function Board(grid){
     //returns player scores in form [black score,white score]
     this.score = function(){
         this.territories = [];
+        
+        var scores = [0,7.5]; //White gets a bonus for going second
         
         //first sweep - identify territories
         for (var i = 0; i < this.size; i++){
@@ -233,15 +230,13 @@ go.Board = function Board(grid){
         
         
         //Now count score via Area method:
-        this.scores = [0,7.5]; //White gets a bonus for going second
-        
         //First stones on the board:
         for (var i in this.armies){
             var curArmy = this.armies[i];
             if(curArmy.colour == "black"){
-                this.scores[0] += curArmy.countStones();
+                scores[0] += curArmy.countStones();
             }else if(curArmy.colour == "white"){
-                this.scores[1] += curArmy.countStones();
+                scores[1] += curArmy.countStones();
             }
         }
         
@@ -250,13 +245,13 @@ go.Board = function Board(grid){
             var curTerritory = this.territories[i];
 
             if(curTerritory.colour() == 1){
-                this.scores[0] += curTerritory.size();
+                scores[0] += curTerritory.size();
             }else if(curTerritory.colour() == 2){
-                this.scores[1] += curTerritory.size();
+                scores[1] += curTerritory.size();
             }
         }
         
-        return this.scores;
+        return scores;
     }//score
     
     this.getStone = function(x,y){
