@@ -1,4 +1,4 @@
-go = module.exports;
+var go = {};
 
 go.emptyGrid = function(size){
     var board = new Array(size);
@@ -65,7 +65,7 @@ go.Board = function Board(grid){
                 if(this.grid[i][j] != 0){
                     var colour = (this.grid[i][j] == 1? "black" : "white");
                     
-                    var newStone = new Stone(i,j,colour);
+                    var newStone = new go.Stone(i,j,colour);
                     var currentArmy = new go.Army(colour);
                     currentArmy.addStone(newStone);
                     
@@ -113,28 +113,28 @@ go.Board = function Board(grid){
                     if(i > 0){
                         tempStone = this.getStone(i-1,j);
                         if(tempStone != null && !tempStone.army.checkForLiberty(i,j)){
-                            tempStone.army.addLiberty(new Intersection(i,j));
+                            tempStone.army.addLiberty(new go.Intersection(i,j));
                         }
                     }
                     
                     if(i < this.size - 1){
                         tempStone = this.getStone(i+1,j);
                         if(tempStone != null && !tempStone.army.checkForLiberty(i,j)){
-                            tempStone.army.addLiberty(new Intersection(i,j));
+                            tempStone.army.addLiberty(new go.Intersection(i,j));
                         }
                     }
                     
                     if(j > 0){
                         tempStone = this.getStone(i,j-1);
                         if(tempStone != null && !tempStone.army.checkForLiberty(i,j)){
-                            tempStone.army.addLiberty(new Intersection(i,j));
+                            tempStone.army.addLiberty(new go.Intersection(i,j));
                         }
                     }
                     
                     if(j < this.size - 1){
                         tempStone = this.getStone(i,j+1);
                         if(tempStone != null && !tempStone.army.checkForLiberty(i,j)){
-                            tempStone.army.addLiberty(new Intersection(i,j));
+                            tempStone.army.addLiberty(new go.Intersection(i,j));
                         }
                     }
                 }//if is liberty
@@ -158,8 +158,8 @@ go.Board = function Board(grid){
                 //for empty intersections...
                 if(this.grid[i][j] == 0){
                     
-                    var newIntersection = new Intersection(i,j);
-                    var currentTerritory = new Territory();
+                    var newIntersection = new go.Intersection(i,j);
+                    var currentTerritory = new go.Territory();
                     currentTerritory.addIntersection(newIntersection);
                     
                     this.territories.push(currentTerritory);
@@ -463,8 +463,7 @@ go.Army = function Army(colour){
 
 //Army: a collection of connected intersections
 //     Knows whether it touches any black or white stones
-go.Territory = Territory;
-var Territory = function Territory(){
+go.Territory = function Territory(){
     this.intersections = [];
     this.touchesBlack = false;
     this.touchesWhite = false;
@@ -504,8 +503,7 @@ var Territory = function Territory(){
 }
 
 //Stone has x, y position, colour, and group.
-go.Stone = Stone;
-var Stone = function Stone(x,y,colour){
+go.Stone = function Stone(x,y,colour){
     this.x = x;
     this.y = y;
     this.colour = colour;
@@ -518,8 +516,7 @@ var Stone = function Stone(x,y,colour){
 }//Stone
 
 
-go.Intersection = Intersection;
-var Intersection = function Intersection(x,y){
+go.Intersection = function Intersection(x,y){
     this.x = x;
     this.y = y;
     this.territory = null;
@@ -534,4 +531,6 @@ go.Move = function Move(x,y,c,p){
     this.colour = c; //colour, 1 or 2
     this.pass = p;   //pass, true or false
 }
+
+module.exports = go;
 

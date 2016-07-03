@@ -1,7 +1,7 @@
 const go = require("./go.js");
 
 //create a new game, specifying type of game & size of board
-Game = function Game(type, size){
+var Game = function Game(type, size){
     this.gameType = type;   //hotseat, network, or AI
     this.currentPlayer = 1; //1 for black, 2 for white
     this.previousMove = null;   //the previous move
